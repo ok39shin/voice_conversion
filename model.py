@@ -20,7 +20,7 @@ def pad_layer(inp, layer, is_2d=False):
         else:
             pad = (kernel_size//2, kernel_size//2, kernel_size//2, kernel_size//2)
     # padding
-    inp = F.pad(inp, 
+    inp = F.pad(inp,
             pad=pad,
             mode='reflect')
     out = layer(inp)
@@ -29,7 +29,7 @@ def pad_layer(inp, layer, is_2d=False):
 def pixel_shuffle_1d(inp, upscale_factor=2):
     batch_size, channels, in_width = inp.size()
     channels //= upscale_factor
-    
+
     out_width = in_width * upscale_factor
     inp_view = inp.contiguous().view(batch_size, channels, upscale_factor, in_width)
     shuffle_out = inp_view.permute(0, 1, 3, 2).contiguous()
@@ -127,7 +127,7 @@ class PatchDiscriminator(nn.Module):
         out = F.leaky_relu(out, negative_slope=self.ns)
         for layer in after_layers:
             out = layer(out)
-        return out 
+        return out
 
     def forward(self, x, classify=False):
         x = torch.unsqueeze(x, dim=1)
@@ -253,8 +253,8 @@ class CBHG(nn.Module):
         self.layers = nn.ModuleList([nn.Linear(128, 128) for _ in range(4)])
         self.gates = nn.ModuleList([nn.Linear(128, 128) for _ in range(4)])
         self.RNN = nn.GRU(input_size=128, hidden_size=128, num_layers=1, bidirectional=True)
-        self.linear2 = nn.Linear(256, c_out) 
-        
+        self.linear2 = nn.Linear(256, c_out)
+
     def forward(self, x):
         outs = []
         for l in self.conv1s:
@@ -263,7 +263,7 @@ class CBHG(nn.Module):
             outs.append(out)
         bn_outs = []
         for out, bn in zip(outs, self.bn1s):
-           out = bn(out) 
+           out = bn(out)
            bn_outs.append(out)
         out = torch.cat(bn_outs, dim=1)
         out = pad_layer(out, self.mp1)
@@ -336,7 +336,7 @@ class Decoder(nn.Module):
     def forward(self, x, c):
         emb = self.emb(c)
         # conv layer
-        out = self.conv_block(x, [self.conv1, self.conv2], self.ins_norm1, emb, res=True )
+        out = self.conv_block(x, [self.conv1, self.conv2], self.ins_norm1, emb, res=True)
         out = self.conv_block(out, [self.conv3, self.conv4], self.ins_norm2, emb, res=True)
         out = self.conv_block(out, [self.conv5, self.conv6], self.ins_norm3, emb, res=True)
         # dense layer
@@ -396,7 +396,7 @@ class Encoder(nn.Module):
         if res:
             x_pad = F.pad(x, pad=(0, x.size(2) % 2), mode='reflect')
             x_down = F.avg_pool1d(x_pad, kernel_size=2)
-            out = x_down + out 
+            out = x_down + out
         return out
 
     def dense_block(self, x, layers, norm_layers, res=True):
